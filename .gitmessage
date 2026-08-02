@@ -1,0 +1,16 @@
+# <type>(<scope>): <subject>
+# Contoh: feat(hadits): add search endpoint with FTS5
+#
+# Pilih <type>:
+#   feat     : Fitur / Modul API baru (Bump MINOR)
+#   fix      : Perbaikan bug (Bump PATCH)
+#   refactor : Perubahan struktur kode tanpa merubah fungsi (Bump PATCH)
+#   perf     : Optimasi performa (Bump PATCH)
+#   docs     : Perubahan dokumentasi
+#   style    : Formatting / Linter
+#   chore    : Perubahan build, Docker, config, dependencies
+#
+# Pilih <scope>: hadits, server, config, docker, nginx, scraper
+# ----------------------------------------------------------------------
+# Penjelasan singkat mengenai perubahan yang dilakukan:
+

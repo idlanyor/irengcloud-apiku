@@ -1,0 +1,13 @@
+services:
+  ireng-api:
+    build: .
+    container_name: ireng_api_server
+    restart: always
+    ports:
+      - "8410:8410"
+    environment:
+      - PORT=8410
+      - NODE_ENV=production
+    volumes:
+      - ./data:/app/data
+      - ./hadits.db:/app/hadits.db

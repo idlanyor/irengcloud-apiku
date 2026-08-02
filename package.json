@@ -1,0 +1,22 @@
+{
+  "name": "irengcloud-universal-api",
+  "version": "1.1.0",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node scraper.js",
+    "import": "node import-to-sqlite.js",
+    "serve": "node server.js",
+    "release:patch": "npm version patch",
+    "release:minor": "npm version minor",
+    "release:major": "npm version major",
+    "setup:git": "git config commit.template .gitmessage"
+  },
+  "dependencies": {
+    "axios": "^1.19.0",
+    "better-sqlite3": "^13.0.2",
+    "cheerio": "^1.0.0-rc.12",
+    "cors": "^2.8.5",
+    "express": "^4.21.2"
+  }
+}
