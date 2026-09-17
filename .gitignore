@@ -25,6 +25,18 @@ yarn-debug.log*
 yarn-error.log*
 core.*
 
+# Frontend build
+web/node_modules/
+web/dist/
+
+# Scope: folder tools & kanata module internal (sensitive: cookies, sessions, .env)
+kanata_api/
+scratch/
+
+# Cookie/session files (dapat berisi kredensial)
+cookies.txt
+*cookies*.txt
+
 # OS & IDE Files
 .DS_Store
 Thumbs.db

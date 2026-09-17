@@ -1,105 +1,114 @@
-import axios from 'axios';
+import defaultAxios from 'axios';
+import defaultLogger from '../utils/logger.js';
 
-/**
- * Scrape Instagram using Googlebot SEO Trick (No Cookie Required)
- */
-export async function scrapeIG(url) {
-    try {
-        const res = await axios.get(url, {
-            headers: {
-                // Trik utama: Kita menyamar sebagai Googlebot agar IG merender HTML penuh 
-                // beserta JSON data (untuk kebutuhan SEO Google), tanpa menahan datanya di balik login wall!
-                'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-            }
-        });
-        
-        const html = res.data;
-        
-        // Cari semua block video_versions di HTML (bisa banyak kalau carousel)
-        const videoMatches = [...html.matchAll(/"video_versions":\[(.*?)\]/g)];
-        const imageMatches = [...html.matchAll(/"image_versions2":\{"candidates":\[(.*?)\]\}/g)];
-        
-        // Helper untuk membersihkan URL dari Unicode double-escape (seperti \\u0025)
-        const cleanUrl = (url) => {
-            if (!url) return url;
-            return url.replace(/\\u([0-9a-fA-F]{4})/g, (m, c) => String.fromCharCode(parseInt(c, 16))).replace(/\\\//g, '/');
-        };
+export function createInstagramService({ httpClient = defaultAxios, logger = defaultLogger } = {}) {
+  const DEFAULT_UA =
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
 
-        let mediaArr = [];
+  function extractShortcode(url) {
+    const s = String(url);
+    const m = s.match(/(?:p|reel|reels|tv)\/([A-Za-z0-9_-]+)/);
+    return m ? m[1] : null;
+  }
 
-        // Parsing Videos
-        for (const match of videoMatches) {
-            try {
-                const videoData = JSON.parse('[' + match[1] + ']');
-                if (videoData.length > 0) {
-                    mediaArr.push({
-                        type: 'video',
-                        url: cleanUrl(videoData[0].url)
-                    });
-                }
-            } catch (e) {
-                const mp4 = match[1].match(/"url":"(.*?)"/);
-                if (mp4) {
-                    mediaArr.push({ type: 'video', url: cleanUrl(mp4[1]) });
-                }
-            }
-        }
+  async function fetchWithGQL(shortcode) {
+    const variables = JSON.stringify({
+      shortcode,
+      fetch_tagged: false,
+      fetch_comment_count: 0,
+      fetch_related_profile_media_count: 0,
+      first: 1,
+    });
 
-        // Jika tidak ada video sama sekali, ambil gambar pertama atau semua gambar
-        if (mediaArr.length === 0) {
-            for (const match of imageMatches) {
-                try {
-                    const imgData = JSON.parse('[' + match[1] + ']');
-                    if (imgData.length > 0) {
-                        mediaArr.push({
-                            type: 'image',
-                            url: cleanUrl(imgData[0].url)
-                        });
-                    }
-                } catch (e) {
-                    const jpg = match[1].match(/"url":"(.*?)"/);
-                    if (jpg) {
-                        mediaArr.push({ type: 'image', url: cleanUrl(jpg[1]) });
-                    }
-                }
-            }
-        }
+    const body = new URLSearchParams({
+      doc_id: '8845758582119845',
+      variables,
+    });
 
-        // Unik-kan URL agar tidak double (karena IG sering menulis object yang sama berulang kali di HTML)
-        const uniqueMedia = [];
-        const seenUrls = new Set();
-        for (const m of mediaArr) {
-            if (!seenUrls.has(m.url)) {
-                seenUrls.add(m.url);
-                uniqueMedia.push(m);
-            }
-        }
+    const { data } = await httpClient.post('https://www.instagram.com/graphql/query', body.toString(), {
+      headers: {
+        'User-Agent': DEFAULT_UA,
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'X-FB-Friendly-Name': 'PolarisPostRootQuery',
+        'X-IG-App-ID': '936619743392459',
+        Origin: 'https://www.instagram.com',
+        Referer: `https://www.instagram.com/p/${shortcode}/`,
+      },
+      timeout: 15000,
+    });
 
-        if (uniqueMedia.length > 0) {
-            return {
-                success: true,
-                data: {
-                    media: uniqueMedia,
-                    caption: "Scraped via SEO Trick (No Cookie)",
-                    video_url: uniqueMedia[0].type === 'video' ? uniqueMedia[0].url : null,
-                    thumbnail: uniqueMedia[0].type === 'image' ? uniqueMedia[0].url : null
-                }
-            };
-        } else {
-            return {
-                success: false,
-                error: 'Media URL tidak ditemukan di dalam HTML. Kemungkinan post diproteksi secara khusus.'
-            };
-        }
+    return data?.data?.xdt_shortcode_media || null;
+  }
 
-    } catch (e) {
+  function parseMedia(item) {
+    if (!item) return null;
+
+    const isVideo = Boolean(item.is_video);
+    const result = {
+      type: isVideo ? 'video' : 'photo',
+      url: isVideo ? item.video_url : item.display_url,
+      dimensions: item.dimensions || null,
+    };
+
+    if (item.edge_sidecar_to_children?.edges?.length) {
+      result.type = 'carousel';
+      result.media = item.edge_sidecar_to_children.edges.map((edge) => {
+        const node = edge.node;
+        const nodeIsVideo = Boolean(node.is_video);
         return {
-            success: false,
-            error: `Gagal scrape IG via SEO: ${e.message}`
+          type: nodeIsVideo ? 'video' : 'photo',
+          url: nodeIsVideo ? node.video_url : node.display_url,
         };
+      });
     }
+
+    return result;
+  }
+
+  return {
+    async scrapeIG(url) {
+      const shortcode = extractShortcode(url);
+      if (!shortcode) {
+        return {
+          success: false,
+          error: 'URL Instagram tidak valid (shortcode p/reel tidak ditemukan).',
+        };
+      }
+
+      logger.info(`Scraping IG shortcode: ${shortcode}`, 'INSTAGRAM');
+
+      try {
+        const mediaData = await fetchWithGQL(shortcode);
+
+        if (!mediaData) {
+          return {
+            success: false,
+            error: 'Gagal mengambil data dari Instagram (media privat / tidak ditemukan).',
+          };
+        }
+
+        const parsed = parseMedia(mediaData);
+
+        return {
+          success: true,
+          shortcode,
+          owner: {
+            username: mediaData.owner?.username,
+            full_name: mediaData.owner?.full_name,
+            profile_pic_url: mediaData.owner?.profile_pic_url,
+          },
+          caption: mediaData.edge_media_to_caption?.edges[0]?.node?.text || '',
+          ...parsed,
+        };
+      } catch (err) {
+        logger.error(`Error IG scraping ${shortcode}: ${err.message}`, 'INSTAGRAM');
+        return {
+          success: false,
+          error: `Gagal scrape Instagram: ${err.message}`,
+        };
+      }
+    },
+  };
 }
 
-// Alias untuk kompatibilitas
-export const scrapeReel = scrapeIG;
+export const scrapeIG = createInstagramService().scrapeIG;

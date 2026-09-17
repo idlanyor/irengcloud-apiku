@@ -1,0 +1,144 @@
+@import "tailwindcss";
+
+/*
+  IrengCloud Universal API — Design Tokens from DESIGN.md
+  Colors: primary #0f172a, surface #f1f5f9, border #e2e8f0, text #0f172a, text-muted #64748b, accent #64748b
+  Typography: Quicksand (sans), JetBrains Mono (mono)
+*/
+@theme {
+  --color-primary: #0f172a;
+  --color-on-primary: #ffffff;
+  --color-surface: #f1f5f9;
+  --color-surface-hover: #e2e8f0;
+  --color-border-subtle: #e2e8f0;
+  --color-border-strong: #cbd5e1;
+  --color-text-main: #0f172a;
+  --color-text-muted: #64748b;
+  --color-accent: #475569;
+
+  /* Retain dark shell tokens matching IrengCloud brand */
+  --color-dark: #0b0f17;
+  --color-dark-card: #111827;
+  --color-dark-card-hover: #1e293b;
+  --color-dark-border: #1e293b;
+  --color-muted: #64748b;
+
+  --font-sans: 'Quicksand', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SF Mono, Menlo, monospace;
+
+  --shadow-card: 0 0 0 0 rgba(0, 0, 0, 0), 0 2px 10px -3px rgba(0, 0, 0, 0.04);
+  --shadow-elevated: 0 10px 25px -5px rgba(15, 23, 42, 0.1);
+
+  --radius-sm: 2px;
+  --radius-md: 6px;
+  --radius-lg: 12px;
+  --radius-xl: 24px;
+}
+
+:root {
+  --bg-app: #0f0a0d;
+  --bg-card: rgba(26, 16, 22, 0.7);
+  --bg-card-solid: #190f15;
+  --bg-subtle: #24141e;
+  --bg-input: #0a0608;
+  --border-color: #3b1828;
+  --border-hover: #5d253f;
+  --text-main: #fff1f5;
+  --text-secondary: #fda4af;
+  --text-muted: #f43f5e;
+  --btn-primary-bg: #e11d48;
+  --btn-primary-text: #ffffff;
+  --btn-secondary-bg: #27121d;
+  --btn-secondary-text: #ffe4e6;
+  --header-bg: #0f0a0d;
+}
+
+html.light {
+  --bg-app: #fff8f9;
+  --bg-card: #ffffff;
+  --bg-card-solid: #ffffff;
+  --bg-subtle: #ffe4e8;
+  --bg-input: #ffffff;
+  --border-color: #fecdd3;
+  --border-hover: #fda4af;
+  --text-main: #881337;
+  --text-secondary: #9f1239;
+  --text-muted: #be123c;
+  --btn-primary-bg: #e11d48;
+  --btn-primary-text: #ffffff;
+  --btn-secondary-bg: #ffe4e8;
+  --btn-secondary-text: #9f1239;
+  --header-bg: #ffffff;
+}
+
+/* Rose Gradient Utilities */
+.bg-rose-gradient {
+  background: linear-gradient(135deg, #f43f5e 0%, #e11d48 50%, #be123c 100%);
+}
+
+.text-rose-gradient {
+  background: linear-gradient(135deg, #fb7185 0%, #f43f5e 50%, #e11d48 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+html.light .text-rose-gradient {
+  background: linear-gradient(135deg, #e11d48 0%, #be123c 60%, #9f1239 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Base */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--bg-app);
+  color: var(--text-main);
+  font-family: 'Quicksand', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--bg-app); }
+::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+html.light ::-webkit-scrollbar-thumb { background: #cbd5e1; }
+::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+/* Syntax highlight tokens */
+.token-method { color: #0284c7; font-weight: 700; }
+html:not(.light) .token-method { color: #38bdf8; }
+.token-key { color: #475569; }
+html:not(.light) .token-key { color: #cbd5e1; }
+.token-string { color: #ca8a04; }
+html:not(.light) .token-string { color: #fde047; }
+.token-number { color: #db2777; }
+html:not(.light) .token-number { color: #f472b6; }
+.token-comment { color: #64748b; font-style: italic; }
+
+/* Status indicator dot - solid, purposeful without slop loop */
+.status-dot-active {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #10b981;
+  display: inline-block;
+}
+
+@keyframes slide-down {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-slide-down { animation: slide-down 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+.animate-fade-in { animation: fade-in 0.15s ease-out forwards; }
+

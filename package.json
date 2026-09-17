@@ -1,6 +1,6 @@
 {
   "name": "irengcloud-universal-api",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "type": "module",
   "main": "server.js",
   "scripts": {
@@ -13,10 +13,14 @@
     "setup:git": "git config commit.template .gitmessage"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1104.0",
     "axios": "^1.19.0",
     "better-sqlite3": "^13.0.2",
     "cheerio": "^1.0.0-rc.12",
     "cors": "^2.8.5",
-    "express": "^4.21.2"
+    "express": "^4.21.2",
+    "https-proxy-agent": "^9.1.0",
+    "multer": "^2.2.0",
+    "swagger-ui-express": "^5.0.1"
   }
 }

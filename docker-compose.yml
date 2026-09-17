@@ -8,6 +8,11 @@ services:
     environment:
       - PORT=8410
       - NODE_ENV=production
+      - R2_ACCOUNT_ID=${R2_ACCOUNT_ID}
+      - R2_ACCESS_KEY_ID=${R2_ACCESS_KEY_ID}
+      - R2_SECRET_ACCESS_KEY=${R2_SECRET_ACCESS_KEY}
+      - R2_PUBLIC_DOMAIN=${R2_PUBLIC_DOMAIN:-https://s3.ireng.uk/}
+      - R2_BUCKET_NAME=${R2_BUCKET_NAME:-kanata}
     volumes:
       - ./data:/app/data
       - ./hadits.db:/app/hadits.db
