@@ -6,3 +6,11 @@ npm-debug.log
 .gitignore
 *.db-wal
 *.db-shm
+
+# Sensitive / local-only
+.env
+.env.*
+!.env.example
+kanata_api
+scratch
+cookie*.txt
